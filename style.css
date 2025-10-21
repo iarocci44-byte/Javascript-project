@@ -1,0 +1,190 @@
+/* General styles */
+body{
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-image: url(./assets/film-596519_1920.jpg);
+    background-size: cover;
+    background-blend-mode: lighten;
+    background-attachment: fixed;
+    background-color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-decoration: none;
+}
+
+body, html {
+    overflow-x: hidden;
+}
+
+ul {
+    display:flex;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+/* NAV BAR styles */
+.container__nav {
+    color: white;
+    max-width: 1200px;
+    width: 90vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 20px;
+}
+
+.nav__logo {
+    max-width: 75px;
+    height: auto;
+}
+.nav__links a {
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav__links a:hover {
+    cursor: pointer;
+    transition: all 200ms ease;
+     border-bottom: 3px solid rgb(0, 0, 0);
+}
+
+/* Search box styles */
+
+.search__section {
+    margin-top: 20px;
+    margin-bottom: 40px;
+    text-align: center;
+    position: relative;
+}
+
+/* APP container styles */
+#app__container {
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 1200px;
+    width: 90vw;
+    margin-top: 20px;
+    align-items: center;
+}
+
+#results__list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1 1 auto; /* allow list to grow inside results section */
+}
+.page__btn {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Ensure results section keeps a stable layout so pagination doesn't jump */
+.results__section {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 650px; /* reserve vertical space so pagination stays put */
+    position: relative;
+    overflow: hidden;
+}
+
+.result__item {
+    flex-basis: calc(100%/3 - 10px);
+    margin-right: 10px; 
+    margin-bottom: 10px;
+    text-align: center;
+    min-width: 25%;
+}
+
+.result__item:nth-child(3n) {
+    margin-right: 0; 
+}
+.pagination {
+    margin-top: 20px;
+    height: 100px;
+    display: flex;
+    position: absolute;
+    top: 530px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Anchor pagination to bottom of the results section */
+.results__section .pagination {
+    margin-top: auto; /* push pagination to bottom */
+    padding: 12px 0 6px 0;
+    background: rgba(255,255,255,0.0);
+}
+
+/* Loading reel spinner */
+.loading-reel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 150px;
+    margin: 20px auto;
+    background-image: url('./assets/film-reel-147850_640.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    animation: spin 1s linear infinite;
+}
+
+/* Footer styles */
+
+#footer {
+    position: absolute;
+    width: 100%;
+    height: 100px;
+    margin-top: 950px;
+}
+.footer__text {
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    position: absolute;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .result__item {
+        flex-basis: calc(50% - 10px);
+    }
+    .result__item:nth-child(4n) {
+        margin-right: 10px; 
+    }
+    .result__item:nth-child(2n) {
+        margin-right: 0; 
+    }
+    #footer {
+        margin-top: 1200px;
+    }
+}
+
+@media (max-width: 480px) {
+    ul {
+        display: list-item;
+        }
+}
+

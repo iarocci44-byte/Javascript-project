@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMDB Search</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <noscript>
+        <strong>We're sorry but this application doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <nav>
+        <div class="container__nav">
+            <figure class="nav__logo">
+            <img src="./assets/filmreel.png" class="nav__logo">
+            </figure>
+            <ul class="nav__links">
+                <li class="nav__link"><a href="#">Home</a></li>
+                <li class="nav__link"><a href="#">About</a></li>
+                <li class="nav__link"><a href="#">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div id="app__container">
+        <header>
+            <h1>IMDB Search</h1>
+        </header>
+        <main>
+            <section class="search__section">
+                <input type="text" id="searchBox" placeholder="Search for movies by title..." />
+                <button onclick="sendDataToJS()">Search</button>
+            </section>
+            <section class="results__section">
+                <ul id="results__list"></ul>
+            </section>
+        </main>
+    </div>
+        <section id="footer">
+            <div class="footer__text">
+            <p>&copy; 2024 IMDB Search. All rights reserved.</p>
+            </div>
+        </section>
+</body>
+</html>
