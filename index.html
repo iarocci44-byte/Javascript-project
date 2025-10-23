@@ -31,6 +31,19 @@
             <section class="search__section">
                 <input type="text" id="searchBox" placeholder="Search for movies by title..." />
                 <button onclick="sendDataToJS()">Search</button>
+                <div id="year-filter" class="year-filter">
+                    <label for="yearMin">Year range:</label>
+                    <div class="year-slider-wrap">
+                        <input type="range" id="yearMin" />
+                        <input type="range" id="yearMax" />
+                    </div>
+                    <div class="year-values">
+                        <span id="yearMinValue"></span>
+                        <span>—</span>
+                        <span id="yearMaxValue"></span>
+                    </div>
+                    <div id="yearRangeDisplay" class="year-range-display" aria-live="polite"></div>
+                </div>
             </section>
             <section class="results__section">
                 <ul id="results__list"></ul>

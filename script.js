@@ -4,6 +4,23 @@ const itemPerPage = 6;
 // state for pagination
 let currentSearchResults = [];
 let currentPage = 1;
+const YEAR_MIN = 1888;
+const YEAR_MAX = new Date().getFullYear();
+let yearRangeMin = YEAR_MIN;
+let yearRangeMax = YEAR_MAX;
+
+/** Return currentSearchResults filtered by yearRangeMin/yearRangeMax */
+function getFilteredResults() {
+  if (!currentSearchResults || currentSearchResults.length === 0) return [];
+  return currentSearchResults.filter((item) => {
+    const yearText = item && item.Year ? String(item.Year) : '';
+    const m = yearText.match(/\d{4}/);
+    if (!m) return false;
+    const y = parseInt(m[0], 10);
+    if (Number.isNaN(y)) return false;
+    return y >= yearRangeMin && y <= yearRangeMax;
+  });
+}
 
 /* event listener for searchBox enter key
 document.getElementById('searchBox').addEventListener('keydown', (event) => {
@@ -21,8 +38,9 @@ function renderPage(page) {
   const resultsSection = document.querySelector('.results__section');
   if (!resultsList || !resultsSection) return;
 
-  // bounds
-  const totalItems = currentSearchResults.length;
+  // bounds (use filtered results)
+  const filtered = getFilteredResults();
+  const totalItems = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemPerPage));
   if (page < 1) page = 1;
   if (page > totalPages) page = totalPages;
@@ -31,7 +49,7 @@ function renderPage(page) {
   // slice the items for the page
   const start = (page - 1) * itemPerPage;
   const end = start + itemPerPage;
-  const pageItems = currentSearchResults.slice(start, end);
+  const pageItems = filtered.slice(start, end);
 
   // render
   resultsList.innerHTML = '';
@@ -148,6 +166,7 @@ async function fetchData(url) {
 async function fetchAllPages(baseUrl) {
   const allItems = [];
   let page = 1;
+
   while (true) {
     const pageUrl = baseUrl + '&page=' + page;
     const data = await fetchData(pageUrl);
@@ -164,6 +183,173 @@ async function fetchAllPages(baseUrl) {
   }
   return allItems;
 }
+
+  /** Initialize the dual-range year filter UI and event handlers. */
+  function initYearFilter() {
+    const minInput = document.getElementById('yearMin');
+    const maxInput = document.getElementById('yearMax');
+    const minVal = document.getElementById('yearMinValue');
+    const maxVal = document.getElementById('yearMaxValue');
+    const rangeDisplay = document.getElementById('yearRangeDisplay');
+    if (!minInput || !maxInput || !minVal || !maxVal || !rangeDisplay) return;
+
+    minInput.min = YEAR_MIN;
+    minInput.max = YEAR_MAX;
+    maxInput.min = YEAR_MIN;
+    maxInput.max = YEAR_MAX;
+
+    // initialize values
+    minInput.value = YEAR_MIN;
+    maxInput.value = YEAR_MAX;
+    yearRangeMin = YEAR_MIN;
+    yearRangeMax = YEAR_MAX;
+    minVal.textContent = yearRangeMin;
+    maxVal.textContent = yearRangeMax;
+    // rangeDisplay.textContent = `Showing years ${yearRangeMin} — ${yearRangeMax}`;
+
+    // stacking so both thumbs are usable
+    minInput.style.zIndex = 1;
+    maxInput.style.zIndex = 2;
+
+    function updateRangeDisplay() {
+      minVal.textContent = yearRangeMin;
+      maxVal.textContent = yearRangeMax;
+      //rangeDisplay.textContent = `Showing years ${yearRangeMin} — ${yearRangeMax}`;
+    }
+
+    // visual track element (created after sliderWrap exists)
+    let rangeTrack = null;
+    function updateRangeTrack() {
+      if (!rangeTrack) return;
+      const minV = parseInt(minInput.value, 10);
+      const maxV = parseInt(maxInput.value, 10);
+      const total = YEAR_MAX - YEAR_MIN;
+      const leftPercent = ((minV - YEAR_MIN) / total) * 100;
+      const rightPercent = ((YEAR_MAX - maxV) / total) * 100;
+      rangeTrack.style.left = leftPercent + '%';
+      rangeTrack.style.right = rightPercent + '%';
+    }
+
+    function onMinInput() {
+      let v = parseInt(minInput.value, 10);
+      if (Number.isNaN(v)) v = YEAR_MIN;
+      if (v > yearRangeMax) {
+        v = yearRangeMax;
+        minInput.value = v;
+      }
+      yearRangeMin = v;
+      currentPage = 1;
+      updateRangeDisplay();
+      updateRangeTrack();
+      renderPage(1);
+    }
+
+    function onMaxInput() {
+      let v = parseInt(maxInput.value, 10);
+      if (Number.isNaN(v)) v = YEAR_MAX;
+      if (v < yearRangeMin) {
+        v = yearRangeMin;
+        maxInput.value = v;
+      }
+      yearRangeMax = v;
+      currentPage = 1;
+      updateRangeDisplay();
+      updateRangeTrack();
+      renderPage(1);
+    }
+
+    minInput.addEventListener('input', onMinInput);
+    maxInput.addEventListener('input', onMaxInput);
+    // Implement pointer-based thumb selection so thumbs can be perfectly aligned
+    // Choose the thumb nearest the pointer on down, then track pointermove to update it.
+    let activeThumb = null; // 'min' or 'max'
+
+    function clientXToValue(clientX) {
+      const rect = minInput.getBoundingClientRect();
+      const rel = Math.min(Math.max(0, clientX - rect.left), rect.width);
+      const range = YEAR_MAX - YEAR_MIN;
+      const v = Math.round(YEAR_MIN + (rel / rect.width) * range);
+      return v;
+    }
+
+    function pickClosestThumb(clientX) {
+      const v = clientXToValue(clientX);
+      const minDiff = Math.abs(v - parseInt(minInput.value, 10));
+      const maxDiff = Math.abs(v - parseInt(maxInput.value, 10));
+      return (minDiff <= maxDiff) ? 'min' : 'max';
+    }
+
+    const onPointerDown = (ev) => {
+      ev.preventDefault();
+      const clientX = ev.clientX || (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+      if (clientX == null) return;
+      activeThumb = pickClosestThumb(clientX);
+      // capture pointer for consistent move/up events
+      try { ev.currentTarget.setPointerCapture && ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) {}
+      // update immediately
+      const v = clientXToValue(clientX);
+      if (activeThumb === 'min') {
+        minInput.value = Math.min(v, parseInt(maxInput.value, 10));
+        minInput.classList.add('active-thumb');
+        onMinInput();
+      } else {
+        maxInput.value = Math.max(v, parseInt(minInput.value, 10));
+        maxInput.classList.add('active-thumb');
+        onMaxInput();
+      }
+    };
+
+    const onPointerMove = (ev) => {
+      if (!activeThumb) return;
+      ev.preventDefault();
+      const clientX = ev.clientX || (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+      if (clientX == null) return;
+      const v = clientXToValue(clientX);
+      if (activeThumb === 'min') {
+        const clamped = Math.min(v, parseInt(maxInput.value, 10));
+        minInput.value = clamped;
+        onMinInput();
+      } else {
+        const clamped = Math.max(v, parseInt(minInput.value, 10));
+        maxInput.value = clamped;
+        onMaxInput();
+      }
+    };
+
+    const onPointerUp = (ev) => {
+      activeThumb = null;
+      try { ev.currentTarget.releasePointerCapture && ev.currentTarget.releasePointerCapture(ev.pointerId); } catch (e) {}
+      // remove active class from both thumbs
+      minInput.classList.remove('active-thumb');
+      maxInput.classList.remove('active-thumb');
+    };
+
+    // Attach pointer handlers to the slider container to capture events even when inputs overlap
+    const sliderWrap = document.querySelector('.year-slider-wrap');
+    if (sliderWrap) {
+      // create range track if missing
+      rangeTrack = sliderWrap.querySelector('.range-track');
+      if (!rangeTrack) {
+        rangeTrack = document.createElement('div');
+        rangeTrack.className = 'range-track';
+        sliderWrap.appendChild(rangeTrack);
+      }
+      updateRangeTrack();
+      sliderWrap.addEventListener('pointerdown', onPointerDown);
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+      // also support touch events
+      sliderWrap.addEventListener('touchstart', onPointerDown, { passive: false });
+      document.addEventListener('touchmove', onPointerMove, { passive: false });
+      document.addEventListener('touchend', onPointerUp);
+    } else {
+      // fallback: attach to inputs directly
+      minInput.addEventListener('pointerdown', onPointerDown);
+      maxInput.addEventListener('pointerdown', onPointerDown);
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+    }
+    }
 
 function sendDataToJS() {
   const textBoxValue = document.getElementById('searchBox').value;
@@ -220,3 +406,6 @@ document.getElementById('searchBox').addEventListener('keydown', (event) => {
     sendDataToJS();
   }
 });
+
+// init year filter once DOM is ready (script is loaded with defer)
+initYearFilter();
